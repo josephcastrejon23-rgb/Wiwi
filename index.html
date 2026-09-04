@@ -1,0 +1,1104 @@
+from pathlib import Path
+import zipfile, textwrap, json, os
+
+root = Path("/mnt/data/regalo-cartitas-amor")
+root.mkdir(parents=True, exist_ok=True)
+
+index_html = r'''<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffd9e8" />
+  <meta name="description" content="Un pequeño juego de cartas hecho con mucho amor." />
+  <title>Zare un regalito para ti 💗</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="background-blur blur-one"></div>
+  <div class="background-blur blur-two"></div>
+  <div class="background-blur blur-three"></div>
+
+  <main class="app">
+    <section id="welcomeScreen" class="screen welcome-screen active">
+      <div class="tiny-hearts" aria-hidden="true">
+        <span>♡</span><span>♡</span><span>♡</span>
+      </div>
+
+      <p class="eyebrow">un pequeño regalo para alguien muy especial</p>
+      <h1>
+        Para <span id="Zare">mi amor</span>
+        <span class="title-heart">♥</span>
+      </h1>
+
+      <p class="intro">
+        Preparé unas cartitas para recordarte algunas de las muchas razones
+        por las que haces mis días más bonitos.
+      </p>
+
+      <button id="startBtn" class="primary-btn">
+        Abrir mi regalo
+        <span>→</span>
+      </button>
+
+      <p class="signature">hecho con muchísimo cariño ✿</p>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen">
+      <header class="game-header">
+        <div>
+          <p class="eyebrow">cartitas para ti</p>
+          <h2>Elige una carta 💌</h2>
+        </div>
+
+        <div class="progress-card">
+          <span id="progressText">0 / 8</span>
+          <div class="progress-track">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+        </div>
+      </header>
+
+      <p class="game-help">
+        Toca una carta para descubrir lo que guarda.
+      </p>
+
+      <div id="cardsGrid" class="cards-grid" aria-live="polite"></div>
+
+      <div class="footer-note">
+        <span>♡</span>
+        cada carta fue pensada para ti
+        <span>♡</span>
+      </div>
+    </section>
+
+    <section id="finalScreen" class="screen final-screen">
+      <div class="final-card">
+        <div class="final-icon">💗</div>
+        <p class="eyebrow">llegaste al final</p>
+        <h2>Pero esto no termina aquí.</h2>
+
+        <p id="finalMessage">
+          Estas cartas solo alcanzan para contar una parte pequeñita de todo
+          lo que me haces sentir.
+        </p>
+
+        <div class="love-letter">
+          <p id="loveLetterText">
+            Gracias por existir en mi vida, por tus risas, tus detalles y
+            por convertir momentos simples en recuerdos que quiero guardar siempre.
+            Te quiero más de lo que cabe en una página web.
+          </p>
+          <span class="letter-sign">Con amor, <strong id="yourName">yo</strong> ♡</span>
+        </div>
+
+        <div class="final-actions">
+          <button id="replayBtn" class="secondary-btn">Volver a ver las cartas</button>
+          <button id="surpriseBtn" class="primary-btn">Una última sorpresa ✨</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-backdrop"></div>
+
+    <article class="modal-card">
+      <button id="closeModalBtn" class="close-btn" aria-label="Cerrar">×</button>
+
+      <div id="modalEmoji" class="modal-emoji">🌷</div>
+      <p id="modalLabel" class="modal-label">Carta 1</p>
+      <h3 id="modalTitle">Tu sonrisa</h3>
+      <p id="modalText"></p>
+
+      <div class="modal-decoration">♡ ✦ ♡</div>
+      <button id="nextCardBtn" class="primary-btn small-btn">
+        Guardar en el corazón
+      </button>
+    </article>
+  </div>
+
+  <div id="surpriseOverlay" class="surprise-overlay" aria-hidden="true">
+    <div class="surprise-content">
+      <button id="closeSurpriseBtn" class="close-surprise" aria-label="Cerrar">×</button>
+
+      <div class="floating-heart big-heart">♥</div>
+      <p class="eyebrow">una última cosita</p>
+      <h2 id="surpriseTitle">Te elegiría una y mil veces.</h2>
+      <p id="surpriseText">
+        En esta vida, en otra y en cualquier universo donde vuelva a encontrarte.
+      </p>
+
+      <div class="date-pill" id="specialDate">Nuestro amor merece celebrarse todos los días ✨</div>
+    </div>
+
+    <div id="heartRain" class="heart-rain" aria-hidden="true"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+'''
+
+style_css = r''':root {
+  --pink-50: #fff8fb;
+  --pink-100: #ffeaf2;
+  --pink-200: #ffd3e3;
+  --pink-300: #fcb8d1;
+  --pink-500: #e779a4;
+  --pink-700: #a94e75;
+
+  --lavender-100: #f3edff;
+  --lavender-300: #d9c9ff;
+  --blue-100: #eaf7ff;
+  --yellow-100: #fff7d6;
+  --peach-100: #fff0e7;
+  --mint-100: #eafaf3;
+
+  --ink: #4d3b46;
+  --muted: #7f6976;
+  --white: #ffffff;
+  --shadow: 0 20px 60px rgba(150, 83, 113, 0.12);
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "DM Sans", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, #fff0f6 0, transparent 35%),
+    radial-gradient(circle at bottom right, #f0ebff 0, transparent 35%),
+    linear-gradient(135deg, #fffafc 0%, #fff7fb 48%, #f8f5ff 100%);
+  overflow-x: hidden;
+}
+
+button {
+  font: inherit;
+}
+
+.background-blur {
+  position: fixed;
+  border-radius: 999px;
+  filter: blur(18px);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.blur-one {
+  width: 240px;
+  height: 240px;
+  background: #ffd8e8;
+  top: 8%;
+  left: -80px;
+}
+
+.blur-two {
+  width: 280px;
+  height: 280px;
+  background: #dfd4ff;
+  right: -110px;
+  top: 28%;
+}
+
+.blur-three {
+  width: 210px;
+  height: 210px;
+  background: #fff1c4;
+  left: 20%;
+  bottom: -90px;
+}
+
+.app {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.screen {
+  display: none;
+  min-height: 100vh;
+  padding: 56px 0;
+}
+
+.screen.active {
+  display: flex;
+  animation: fadeIn 0.55s ease both;
+}
+
+.welcome-screen {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.tiny-hearts {
+  display: flex;
+  gap: 16px;
+  color: var(--pink-500);
+  font-size: 23px;
+  margin-bottom: 18px;
+}
+
+.tiny-hearts span:nth-child(1),
+.tiny-hearts span:nth-child(3) {
+  transform: translateY(8px) scale(0.8);
+  opacity: 0.6;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--pink-700);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Playfair Display", serif;
+  margin-top: 0;
+}
+
+h1 {
+  max-width: 750px;
+  margin-bottom: 22px;
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+
+.title-heart {
+  display: inline-block;
+  color: var(--pink-500);
+  font-size: 0.7em;
+  transform: rotate(-8deg);
+  animation: heartbeat 1.8s infinite;
+}
+
+.intro {
+  max-width: 630px;
+  color: var(--muted);
+  line-height: 1.8;
+  font-size: 1.08rem;
+  margin: 0 auto 32px;
+}
+
+.primary-btn,
+.secondary-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 15px 24px;
+  cursor: pointer;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #ef8ab0, #d784ba);
+  color: var(--white);
+  box-shadow: 0 10px 30px rgba(215, 132, 186, 0.28);
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(215, 132, 186, 0.34);
+}
+
+.secondary-btn {
+  color: var(--pink-700);
+  background: var(--pink-100);
+}
+
+.secondary-btn:hover {
+  transform: translateY(-2px);
+  background: var(--pink-200);
+}
+
+.signature {
+  color: #a9919f;
+  margin-top: 28px;
+  font-size: 0.88rem;
+}
+
+.game-screen {
+  flex-direction: column;
+}
+
+.game-header {
+  width: 100%;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 10px;
+}
+
+.game-header h2,
+.final-card h2 {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  margin-bottom: 0;
+  line-height: 1;
+}
+
+.progress-card {
+  min-width: 190px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.9);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.progress-card span {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--pink-700);
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #f7dce7;
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ef8ab0, #c99bee);
+  transition: width 0.4s ease;
+}
+
+.game-help {
+  color: var(--muted);
+  margin: 26px 0;
+}
+
+.cards-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.memory-card {
+  position: relative;
+  aspect-ratio: 0.78;
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transform-style: preserve-3d;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    opacity 0.22s ease;
+}
+
+.memory-card:hover {
+  transform: translateY(-6px) rotate(-1deg);
+  box-shadow: 0 24px 60px rgba(150, 83, 113, 0.18);
+}
+
+.memory-card.opened {
+  opacity: 0.72;
+}
+
+.memory-card.opened::after {
+  content: "✓";
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.82);
+  color: var(--pink-700);
+  font-weight: 900;
+}
+
+.card-number {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: rgba(77, 59, 70, 0.62);
+}
+
+.card-emoji {
+  display: block;
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  margin: 25% 0 16px;
+}
+
+.card-title {
+  display: block;
+  font-family: "Playfair Display", serif;
+  font-size: 1.35rem;
+  line-height: 1.08;
+}
+
+.card-hint {
+  display: block;
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  color: rgba(77, 59, 70, 0.6);
+  font-size: 0.78rem;
+}
+
+.card-sparkle {
+  position: absolute;
+  top: -18px;
+  right: -8px;
+  font-size: 4.6rem;
+  opacity: 0.08;
+  transform: rotate(12deg);
+}
+
+.footer-note {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  color: #a9919f;
+  padding: 30px 0 10px;
+  font-size: 0.86rem;
+}
+
+.final-screen {
+  align-items: center;
+  justify-content: center;
+}
+
+.final-card {
+  width: min(780px, 100%);
+  padding: clamp(28px, 6vw, 58px);
+  text-align: center;
+  background: rgba(255,255,255,0.76);
+  border: 1px solid rgba(255,255,255,0.92);
+  box-shadow: 0 28px 80px rgba(138, 84, 113, 0.14);
+  backdrop-filter: blur(18px);
+  border-radius: var(--radius-xl);
+}
+
+.final-icon {
+  font-size: 3rem;
+  margin-bottom: 18px;
+  animation: heartbeat 1.8s infinite;
+}
+
+.final-card > p:not(.eyebrow) {
+  color: var(--muted);
+  max-width: 610px;
+  margin: 20px auto 28px;
+  line-height: 1.75;
+}
+
+.love-letter {
+  position: relative;
+  text-align: left;
+  padding: 28px;
+  margin: 30px 0;
+  background: linear-gradient(135deg, #fff8fb, #f7f1ff);
+  border: 1px solid #f5d9e6;
+  border-radius: 22px;
+}
+
+.love-letter p {
+  margin: 0;
+  color: #684f5e;
+  line-height: 1.85;
+}
+
+.letter-sign {
+  display: block;
+  margin-top: 18px;
+  text-align: right;
+  color: var(--pink-700);
+  font-family: "Playfair Display", serif;
+  font-style: italic;
+}
+
+.final-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  place-items: center;
+  padding: 20px;
+}
+
+.modal.show {
+  display: grid;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(71, 46, 59, 0.34);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.25s ease both;
+}
+
+.modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(520px, 100%);
+  padding: 38px;
+  border-radius: 28px;
+  background: #fffafd;
+  border: 1px solid rgba(255,255,255,0.95);
+  box-shadow: 0 30px 90px rgba(80, 45, 63, 0.24);
+  text-align: center;
+  animation: popIn 0.35s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.close-btn,
+.close-surprise {
+  border: 0;
+  background: transparent;
+  color: #8c7180;
+  cursor: pointer;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 18px;
+}
+
+.modal-emoji {
+  font-size: 3.6rem;
+  margin: 5px 0 14px;
+}
+
+.modal-label {
+  color: var(--pink-700);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.modal-card h3 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.modal-card > p:not(.modal-label) {
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 0 auto;
+}
+
+.modal-decoration {
+  color: var(--pink-300);
+  letter-spacing: 0.25em;
+  margin: 24px 0 18px;
+}
+
+.small-btn {
+  padding: 13px 20px;
+  font-size: 0.92rem;
+}
+
+.surprise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 20%, #ffd9e8 0, transparent 30%),
+    radial-gradient(circle at 80% 80%, #ddd1ff 0, transparent 30%),
+    linear-gradient(135deg, #fff8fb, #f7f2ff);
+  overflow: hidden;
+}
+
+.surprise-overlay.show {
+  display: grid;
+  animation: fadeIn 0.4s ease both;
+}
+
+.surprise-content {
+  position: relative;
+  z-index: 2;
+  width: min(760px, 100%);
+  text-align: center;
+  padding: 30px;
+}
+
+.close-surprise {
+  position: fixed;
+  top: 22px;
+  right: 26px;
+}
+
+.big-heart {
+  color: #e46f9e;
+  font-size: 5rem;
+  margin-bottom: 12px;
+  text-shadow: 0 12px 35px rgba(228,111,158,.28);
+  animation: heartbeat 1.6s infinite;
+}
+
+.surprise-content h2 {
+  font-size: clamp(3rem, 8vw, 6.2rem);
+  line-height: 0.97;
+  max-width: 920px;
+  margin: 0 auto 24px;
+}
+
+.surprise-content > p:not(.eyebrow) {
+  max-width: 620px;
+  margin: 0 auto;
+  color: var(--muted);
+  line-height: 1.8;
+  font-size: 1.05rem;
+}
+
+.date-pill {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(255,255,255,0.9);
+  box-shadow: var(--shadow);
+  color: var(--pink-700);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.heart-rain {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.rain-heart {
+  position: absolute;
+  top: -40px;
+  color: rgba(230, 112, 158, 0.5);
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.08); }
+  70% { transform: scale(1); }
+}
+
+@media (max-width: 900px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .app {
+    width: min(100% - 22px, 1120px);
+  }
+
+  .screen {
+    padding: 34px 0;
+  }
+
+  .game-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .progress-card {
+    width: 100%;
+  }
+
+  .cards-grid {
+    gap: 12px;
+  }
+
+  .memory-card {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .card-emoji {
+    margin-top: 18%;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .card-hint {
+    display: none;
+  }
+
+  .modal-card {
+    padding: 32px 22px 26px;
+  }
+
+  .modal-card h3 {
+    font-size: 2.15rem;
+  }
+
+  .final-actions {
+    flex-direction: column;
+  }
+
+  .final-actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+'''
+
+script_js = r'''/* =========================================================
+   PERSONALIZA AQUÍ 💗
+   Cambia nombres, frases, emojis y colores de las cartas.
+   ========================================================= */
+
+const CONFIG = {
+  girlfriendName: "Mi amor",
+  yourName: "Tu nombre",
+
+  finalMessage:
+    "Estas cartas solo alcanzan para contar una parte pequeñita de todo lo que me haces sentir.",
+
+  loveLetter:
+    "Gracias por existir en mi vida, por tus risas, tus detalles y por convertir momentos simples en recuerdos que quiero guardar siempre. Te quiero más de lo que cabe en una página web.",
+
+  surpriseTitle: "Te elegiría una y mil veces.",
+
+  surpriseText:
+    "En esta vida, en otra y en cualquier universo donde vuelva a encontrarte.",
+
+  specialDate:
+    "Nuestro amor merece celebrarse todos los días ✨",
+
+  cards: [
+    {
+      emoji: "🌷",
+      title: "Tu sonrisa",
+      text:
+        "Tu sonrisa tiene esa forma tan tuya de hacer que cualquier día normal se sienta un poquito más bonito. Ojalá nunca olvides lo preciosa que te ves cuando eres feliz.",
+      color: "#ffe8f1"
+    },
+    {
+      emoji: "☁️",
+      title: "Mi lugar seguro",
+      text:
+        "Contigo puedo ser yo sin tener que fingir nada. Gracias por escucharme, cuidarme y hacerme sentir en casa incluso cuando estamos lejos de ella.",
+      color: "#eaf5ff"
+    },
+    {
+      emoji: "🎀",
+      title: "Tus detalles",
+      text:
+        "Me encantan esas pequeñas cosas que haces sin darte cuenta: tus mensajes, tus gestos, tu manera de preocuparte y todas esas cosas tuyas que guardo con muchísimo cariño.",
+      color: "#f4ecff"
+    },
+    {
+      emoji: "🌙",
+      title: "Nuestros momentos",
+      text:
+        "No necesito planes enormes para pasarla bien contigo. A veces mis recuerdos favoritos son simplemente estar a tu lado, hablando de cualquier cosa y perdiendo la noción del tiempo.",
+      color: "#eeeaff"
+    },
+    {
+      emoji: "🍓",
+      title: "Lo linda que eres",
+      text:
+        "Sí, eres preciosa por fuera, pero lo que de verdad me enamora es todo lo bonito que llevas dentro: tu forma de sentir, de querer y de mirar el mundo.",
+      color: "#ffe7ea"
+    },
+    {
+      emoji: "✨",
+      title: "Lo que inspiras",
+      text:
+        "Estar contigo me inspira a querer ser una mejor versión de mí. Me haces querer construir cosas bonitas, avanzar y compartir contigo todo lo bueno que venga.",
+      color: "#fff6d8"
+    },
+    {
+      emoji: "🫶",
+      title: "Gracias por tanto",
+      text:
+        "Gracias por cada conversación, cada abrazo, cada risa y cada instante en el que elegiste quedarte. Nunca quiero dar por hecho la suerte que tengo de compartir mi vida contigo.",
+      color: "#e9faf3"
+    },
+    {
+      emoji: "💌",
+      title: "Una promesa",
+      text:
+        "Prometo seguir cuidando lo nuestro, seguir eligiéndote con intención y seguir encontrando maneras de recordarte lo importante que eres para mí.",
+      color: "#fff0e8"
+    }
+  ]
+};
+
+/* =========================================================
+   LÓGICA DEL JUEGO
+   ========================================================= */
+
+const screens = {
+  welcome: document.querySelector("#welcomeScreen"),
+  game: document.querySelector("#gameScreen"),
+  final: document.querySelector("#finalScreen")
+};
+
+const cardsGrid = document.querySelector("#cardsGrid");
+const startBtn = document.querySelector("#startBtn");
+const replayBtn = document.querySelector("#replayBtn");
+const surpriseBtn = document.querySelector("#surpriseBtn");
+
+const progressText = document.querySelector("#progressText");
+const progressFill = document.querySelector("#progressFill");
+
+const modal = document.querySelector("#modal");
+const modalBackdrop = modal.querySelector(".modal-backdrop");
+const closeModalBtn = document.querySelector("#closeModalBtn");
+const nextCardBtn = document.querySelector("#nextCardBtn");
+
+const modalEmoji = document.querySelector("#modalEmoji");
+const modalLabel = document.querySelector("#modalLabel");
+const modalTitle = document.querySelector("#modalTitle");
+const modalText = document.querySelector("#modalText");
+
+const surpriseOverlay = document.querySelector("#surpriseOverlay");
+const closeSurpriseBtn = document.querySelector("#closeSurpriseBtn");
+const heartRain = document.querySelector("#heartRain");
+
+let openedCards = new Set();
+let activeCardIndex = null;
+
+function applyConfig() {
+  document.querySelector("#girlfriendName").textContent = CONFIG.girlfriendName;
+  document.querySelector("#yourName").textContent = CONFIG.yourName;
+  document.querySelector("#finalMessage").textContent = CONFIG.finalMessage;
+  document.querySelector("#loveLetterText").textContent = CONFIG.loveLetter;
+  document.querySelector("#surpriseTitle").textContent = CONFIG.surpriseTitle;
+  document.querySelector("#surpriseText").textContent = CONFIG.surpriseText;
+  document.querySelector("#specialDate").textContent = CONFIG.specialDate;
+}
+
+function switchScreen(target) {
+  Object.values(screens).forEach(screen => screen.classList.remove("active"));
+  screens[target].classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderCards() {
+  cardsGrid.innerHTML = "";
+
+  CONFIG.cards.forEach((card, index) => {
+    const button = document.createElement("button");
+    button.className = "memory-card";
+    button.style.background = card.color;
+    button.setAttribute("aria-label", `Abrir carta ${index + 1}: ${card.title}`);
+
+    if (openedCards.has(index)) {
+      button.classList.add("opened");
+    }
+
+    button.innerHTML = `
+      <span class="card-number">${String(index + 1).padStart(2, "0")}</span>
+      <span class="card-emoji">${card.emoji}</span>
+      <span class="card-title">${card.title}</span>
+      <span class="card-hint">toca para abrir</span>
+      <span class="card-sparkle">✦</span>
+    `;
+
+    button.addEventListener("click", () => openCard(index));
+    cardsGrid.appendChild(button);
+  });
+
+  updateProgress();
+}
+
+function openCard(index) {
+  const card = CONFIG.cards[index];
+  activeCardIndex = index;
+
+  modalEmoji.textContent = card.emoji;
+  modalLabel.textContent = `Carta ${index + 1} de ${CONFIG.cards.length}`;
+  modalTitle.textContent = card.title;
+  modalText.textContent = card.text;
+
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeCard(markAsOpened = true) {
+  if (activeCardIndex !== null && markAsOpened) {
+    openedCards.add(activeCardIndex);
+  }
+
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+
+  renderCards();
+
+  const completed = openedCards.size === CONFIG.cards.length;
+
+  if (completed) {
+    setTimeout(() => switchScreen("final"), 300);
+  }
+
+  activeCardIndex = null;
+}
+
+function updateProgress() {
+  const total = CONFIG.cards.length;
+  const opened = openedCards.size;
+  const percentage = total ? (opened / total) * 100 : 0;
+
+  progressText.textContent = `${opened} / ${total}`;
+  progressFill.style.width = `${percentage}%`;
+}
+
+function resetGame() {
+  openedCards.clear();
+  activeCardIndex = null;
+  renderCards();
+  switchScreen("game");
+}
+
+function openSurprise() {
+  surpriseOverlay.classList.add("show");
+  surpriseOverlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  createHeartRain();
+}
+
+function closeSurprise() {
+  surpriseOverlay.classList.remove("show");
+  surpriseOverlay.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  heartRain.innerHTML = "";
+}
+
+function createHeartRain() {
+  heartRain.innerHTML = "";
+
+  const symbols = ["♥", "♡", "✦", "✿"];
+
+  for (let i = 0; i < 34; i++) {
+    const heart = document.createElement("span");
+    heart.className = "rain-heart";
+    heart.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+
+    heart.style.left = `${Math.random() * 100}%`;
+    heart.style.fontSize = `${12 + Math.random() * 24}px`;
+    heart.style.animationDuration = `${4 + Math.random() * 5}s`;
+    heart.style.animationDelay = `${Math.random() * 3}s`;
+    heart.style.opacity = `${0.25 + Math.random() * 0.45}`;
+
+    heartRain.appendChild(heart);
+  }
+}
+
+/* Eventos */
+
+startBtn.addEventListener("click", () => {
+  renderCards();
+  switchScreen("game");
+});
+
+replayBtn.addEventListener("click", resetGame);
+surpriseBtn.addEventListener("click", openSurprise);
+
+closeModalBtn.addEventListener("click", () => closeCard(true));
+nextCardBtn.addEventListener("click", () => closeCard(true));
+modalBackdrop.addEventListener("click", () => closeCard(true));
+
+closeSurpriseBtn.addEventListener("click", closeSurprise);
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") {
+    if (modal.classList.contains("show")) closeCard(false);
+    if (surpriseOverlay.classList.contains("show")) closeSurprise();
+  }
+});
+
