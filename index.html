@@ -1,196 +1,153 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Para mi amor 💗</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para el amor de mi vida 💗</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 
-  <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-  <div class="bg bg1"></div>
-  <div class="bg bg2"></div>
-  <div class="bg bg3"></div>
+    <div class="corazones"></div>
 
-  <!-- INICIO -->
-  <section id="inicio" class="pantalla activa">
+    <!-- INICIO -->
+    <section id="inicio" class="pantalla activa">
+        <div class="inicio-contenido">
+            <div class="corazon-grande">♥</div>
 
-    <div class="corazones">♡　♡　♡</div>
+            <p class="pequeno">PARA ALGUIEN MUY ESPECIAL</p>
 
-    <p class="mini-titulo">UN PEQUEÑO REGALO PARA ALGUIEN MUY ESPECIAL</p>
+            <h1>Una pequeña<br><span>aventura de amor</span></h1>
 
-    <h1>
-      Para <span id="nombreNovia">mi amor</span>
-      <span class="corazon">♥</span>
-    </h1>
+            <p class="descripcion">
+                Preparé algo especial para ti.<br>
+                ¿Quieres descubrirlo? 💗
+            </p>
 
-    <p class="intro">
-      Preparé algo pequeñito para recordarte algunas de las
-      muchas razones por las que haces mis días más bonitos.
-    </p>
+            <button class="boton-principal" onclick="comenzar()">
+                Comenzar la aventura
+                <span>→</span>
+            </button>
 
-    <button class="boton-principal" onclick="comenzar()">
-      Abrir mi regalo
-      <span>→</span>
-    </button>
-
-    <p class="firma">hecho con muchísimo cariño ✿</p>
-
-  </section>
-
-
-  <!-- JUEGO -->
-  <section id="juego" class="pantalla">
-
-    <header class="cabecera">
-
-      <div>
-        <p class="mini-titulo">CARTITAS PARA TI</p>
-        <h2>Elige una carta 💌</h2>
-      </div>
-
-      <div class="progreso">
-        <strong id="contador">0 / 8</strong>
-
-        <div class="barra">
-          <div id="barraProgreso"></div>
+            <p class="firma">Hecho con todo mi amor ♡</p>
         </div>
-      </div>
-
-    </header>
-
-    <p class="ayuda">
-      Toca una carta para descubrir lo que guarda.
-    </p>
-
-    <div id="cartas" class="grid-cartas"></div>
-
-    <p class="pie">
-      ♡ cada carta fue pensada especialmente para ti ♡
-    </p>
-
-  </section>
+    </section>
 
 
-  <!-- FINAL -->
-  <section id="final" class="pantalla final">
+    <!-- JUEGO -->
+    <section id="juego" class="pantalla">
 
-    <div class="caja-final">
+        <div class="juego-contenedor">
 
-      <div class="icono-final">💗</div>
+            <div class="cabecera">
+                <button class="volver" onclick="volverInicio()">← Volver</button>
 
-      <p class="mini-titulo">LLEGASTE AL FINAL</p>
+                <div class="progreso">
+                    <span id="contador">0</span> / 8 descubiertas
+                </div>
+            </div>
 
-      <h2>Pero esto no termina aquí.</h2>
+            <div class="titulo-juego">
+                <p class="pequeno">PEQUEÑOS SECRETOS</p>
+                <h2>Descubre nuestras<br><span>cartitas de amor</span></h2>
+                <p>Haz clic en cada tarjeta para descubrir un mensaje.</p>
+            </div>
 
-      <p class="texto-final">
-        Estas cartas solo alcanzan para contar una parte pequeñita
-        de todo lo que me haces sentir.
-      </p>
+            <div id="cartas" class="cartas-grid"></div>
 
-      <div class="carta-final">
-
-        <p>
-          Gracias por existir en mi vida, por tus risas, tus detalles
-          y por convertir momentos simples en recuerdos que quiero
-          guardar siempre.
-
-          <br><br>
-
-          Te quiero más de lo que cabe en una página web.
-        </p>
-
-        <span>
-          Con amor, <strong id="miNombre">yo</strong> ♡
-        </span>
-
-      </div>
-
-      <div class="botones-final">
-
-        <button class="boton-secundario" onclick="reiniciar()">
-          Volver a ver las cartas
-        </button>
-
-        <button class="boton-principal" onclick="sorpresa()">
-          Una última sorpresa ✨
-        </button>
-
-      </div>
-
-    </div>
-
-  </section>
+        </div>
+    </section>
 
 
-  <!-- MODAL CARTA -->
-  <div id="modal" class="modal">
+    <!-- FINAL -->
+    <section id="final" class="pantalla">
 
-    <div class="fondo-modal" onclick="cerrarCarta()"></div>
+        <div class="final-contenido">
 
-    <div class="carta-modal">
+            <div class="final-corazon">♥</div>
 
-      <button class="cerrar" onclick="cerrarCarta()">×</button>
+            <p class="pequeno">HAS LLEGADO AL FINAL</p>
 
-      <div id="emojiModal" class="emoji-modal">🌷</div>
+            <h2>Y esto es solo<br><span>el comienzo...</span></h2>
 
-      <p id="numeroModal" class="numero-modal">CARTA 1 DE 8</p>
+            <p id="fraseFinal" class="frase-final"></p>
 
-      <h3 id="tituloModal">Tu sonrisa</h3>
+            <button class="boton-principal" onclick="sorpresa()">
+                Tengo una sorpresa para ti 💗
+            </button>
 
-      <p id="textoModal"></p>
+            <button class="boton-secundario" onclick="reiniciar()">
+                Volver a leer las cartitas
+            </button>
 
-      <div class="decoracion">
-        ♡ ✦ ♡
-      </div>
+        </div>
+    </section>
 
-      <button class="boton-principal pequeño" onclick="cerrarCarta()">
-        Guardar en el corazón
-      </button>
+
+    <!-- MODAL CARTA -->
+    <div id="modal" class="modal">
+
+        <div class="modal-contenido">
+
+            <button class="cerrar" onclick="cerrarCarta()">×</button>
+
+            <div class="sobre">💌</div>
+
+            <p id="numeroCarta" class="numero-carta"></p>
+
+            <h3 id="tituloCarta"></h3>
+
+            <p id="textoCarta"></p>
+
+            <div class="firma-carta">
+                Con amor, <span id="nombreFirma"></span> ♡
+            </div>
+
+            <button class="boton-principal pequeno-boton" onclick="cerrarCarta()">
+                Cerrar cartita
+            </button>
+
+        </div>
 
     </div>
 
-  </div>
 
+    <!-- SORPRESA -->
+    <div id="sorpresa" class="sorpresa">
 
-  <!-- SORPRESA -->
-  <div id="sorpresa" class="sorpresa">
+        <div class="sorpresa-contenido">
 
-    <button class="cerrar-sorpresa" onclick="cerrarSorpresa()">×</button>
+            <div class="lluvia-corazones"></div>
 
-    <div id="lluvia"></div>
+            <div class="regalo">🎁</div>
 
-    <div class="contenido-sorpresa">
+            <h2>Te amo muchísimo</h2>
 
-      <div class="corazon-grande">♥</div>
+            <p>
+                Gracias por llegar a mi vida,<br>
+                por cada sonrisa y cada momento.
+            </p>
 
-      <p class="mini-titulo">UNA ÚLTIMA COSITA</p>
+            <div class="corazones-finales">
+                ♥ ♥ ♥
+            </div>
 
-      <h2>
-        Te elegiría una y mil veces.
-      </h2>
+            <button class="boton-principal" onclick="cerrarSorpresa()">
+                Cerrar 💗
+            </button>
 
-      <p>
-        En esta vida, en otra y en cualquier universo
-        donde vuelva a encontrarte.
-      </p>
-
-      <div class="pastilla">
-        Nuestro amor merece celebrarse todos los días ✨
-      </div>
+        </div>
 
     </div>
 
-  </div>
 
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
 </html>
