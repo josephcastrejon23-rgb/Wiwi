@@ -1,0 +1,476 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --rosa: #e98b9f;
+    --rosa-claro: #f8d9df;
+    --rosa-muy-claro: #fff5f7;
+    --vino: #713b48;
+    --texto: #4d3b40;
+    --blanco: #ffffff;
+}
+
+body {
+    font-family: "DM Sans", sans-serif;
+    color: var(--texto);
+    background: var(--rosa-muy-claro);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.pantalla {
+    display: none;
+    min-height: 100vh;
+    position: relative;
+    padding: 30px;
+}
+
+.pantalla.activa {
+    display: flex;
+}
+
+/* INICIO */
+
+#inicio {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background:
+        radial-gradient(circle at 20% 20%, #f9dce2, transparent 30%),
+        radial-gradient(circle at 80% 80%, #f4cbd4, transparent 30%),
+        var(--rosa-muy-claro);
+}
+
+.inicio-contenido {
+    max-width: 700px;
+    animation: aparecer 1s ease;
+}
+
+.corazon-grande {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 50%;
+    color: var(--rosa);
+    font-size: 45px;
+    box-shadow: 0 15px 40px rgba(130, 60, 80, .12);
+    animation: latido 2s infinite;
+}
+
+.pequeno {
+    letter-spacing: 4px;
+    font-size: 12px;
+    color: var(--rosa);
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+h1,
+h2 {
+    font-family: "Playfair Display", serif;
+    color: var(--vino);
+}
+
+h1 {
+    font-size: clamp(45px, 8vw, 80px);
+    line-height: 1.05;
+    margin-bottom: 25px;
+}
+
+h1 span,
+h2 span {
+    color: var(--rosa);
+}
+
+.descripcion {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #80676d;
+    margin-bottom: 35px;
+}
+
+.boton-principal {
+    border: none;
+    background: var(--rosa);
+    color: white;
+    padding: 17px 28px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(210, 110, 130, .25);
+    transition: .3s;
+}
+
+.boton-principal:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(210, 110, 130, .35);
+}
+
+.boton-principal span {
+    margin-left: 10px;
+}
+
+.firma {
+    margin-top: 30px;
+    color: #aa8b93;
+    font-size: 14px;
+}
+
+
+/* JUEGO */
+
+#juego {
+    justify-content: center;
+}
+
+.juego-contenedor {
+    width: 100%;
+    max-width: 1100px;
+}
+
+.cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 60px;
+}
+
+.volver {
+    border: none;
+    background: transparent;
+    color: var(--vino);
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.progreso {
+    background: white;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 14px;
+    box-shadow: 0 5px 20px rgba(100, 50, 60, .07);
+}
+
+.titulo-juego {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.titulo-juego h2 {
+    font-size: clamp(40px, 6vw, 65px);
+    line-height: 1.1;
+    margin-bottom: 20px;
+}
+
+.titulo-juego > p:last-child {
+    color: #80676d;
+}
+
+.cartas-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.carta {
+    height: 220px;
+    background: white;
+    border-radius: 25px;
+    border: 1px solid #f2dce1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: .35s;
+    box-shadow: 0 10px 30px rgba(100, 50, 60, .06);
+}
+
+.carta:hover {
+    transform: translateY(-8px) rotate(-1deg);
+    box-shadow: 0 20px 40px rgba(100, 50, 60, .12);
+}
+
+.carta-numero {
+    font-size: 45px;
+    color: var(--rosa-claro);
+    font-family: "Playfair Display", serif;
+}
+
+.carta-icono {
+    font-size: 35px;
+    margin-bottom: 10px;
+}
+
+.carta-descubierta {
+    background: #fff0f3;
+}
+
+
+/* FINAL */
+
+#final {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background:
+        radial-gradient(circle at 30% 30%, #f9dce2, transparent 30%),
+        radial-gradient(circle at 70% 70%, #f4cbd4, transparent 30%),
+        var(--rosa-muy-claro);
+}
+
+.final-contenido {
+    max-width: 700px;
+    animation: aparecer 1s ease;
+}
+
+.final-corazon {
+    font-size: 70px;
+    color: var(--rosa);
+    animation: latido 2s infinite;
+    margin-bottom: 25px;
+}
+
+.final-contenido h2 {
+    font-size: clamp(45px, 7vw, 75px);
+    line-height: 1.1;
+    margin-bottom: 30px;
+}
+
+.frase-final {
+    font-size: 19px;
+    line-height: 1.8;
+    max-width: 600px;
+    margin: 0 auto 35px;
+    color: #80676d;
+}
+
+.boton-secundario {
+    display: block;
+    margin: 15px auto 0;
+    border: none;
+    background: transparent;
+    color: var(--vino);
+    cursor: pointer;
+}
+
+
+/* MODAL */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(70, 35, 45, .45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+    backdrop-filter: blur(5px);
+}
+
+.modal.mostrar {
+    display: flex;
+}
+
+.modal-contenido {
+    background: white;
+    width: 100%;
+    max-width: 550px;
+    border-radius: 30px;
+    padding: 50px 40px;
+    text-align: center;
+    position: relative;
+    animation: subir .4s ease;
+}
+
+.cerrar {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    border: none;
+    background: transparent;
+    font-size: 30px;
+    color: #a88b92;
+    cursor: pointer;
+}
+
+.sobre {
+    font-size: 55px;
+    margin-bottom: 15px;
+}
+
+.numero-carta {
+    color: var(--rosa);
+    font-size: 12px;
+    letter-spacing: 3px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.modal-contenido h3 {
+    font-family: "Playfair Display", serif;
+    font-size: 32px;
+    color: var(--vino);
+    margin-bottom: 20px;
+}
+
+.modal-contenido > p {
+    font-size: 17px;
+    line-height: 1.8;
+    color: #80676d;
+}
+
+.firma-carta {
+    margin: 30px 0;
+    color: #aa8b93;
+}
+
+.firma-carta span {
+    color: var(--rosa);
+    font-weight: 700;
+}
+
+.pequeno-boton {
+    padding: 12px 22px;
+}
+
+
+/* SORPRESA */
+
+.sorpresa {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #f9dce2;
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+}
+
+.sorpresa.mostrar {
+    display: flex;
+}
+
+.sorpresa-contenido {
+    animation: aparecer 1s ease;
+}
+
+.regalo {
+    font-size: 90px;
+    margin-bottom: 20px;
+    animation: saltar 1.5s infinite;
+}
+
+.sorpresa h2 {
+    font-size: clamp(45px, 8vw, 80px);
+    margin-bottom: 20px;
+}
+
+.sorpresa p {
+    font-size: 19px;
+    line-height: 1.8;
+    color: #80676d;
+    margin-bottom: 25px;
+}
+
+.corazones-finales {
+    color: var(--rosa);
+    font-size: 30px;
+    letter-spacing: 12px;
+    margin-bottom: 30px;
+}
+
+
+/* ANIMACIONES */
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes subir {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes latido {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+}
+
+@keyframes saltar {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 800px) {
+
+    .cartas-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cabecera {
+        margin-bottom: 40px;
+    }
+}
+
+@media (max-width: 500px) {
+
+    .pantalla {
+        padding: 20px;
+    }
+
+    .cartas-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .carta {
+        height: 170px;
+        border-radius: 18px;
+    }
+
+    .modal-contenido {
+        padding: 40px 25px;
+    }
+}
